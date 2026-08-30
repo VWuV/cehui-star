@@ -422,15 +422,15 @@ function renderHome() {
     <h3>GPS 测量</h3><p>GPS 材料待添加（预留位置）</p>
     <div class="tags">后续版本加入</div></div>`);
   $("homeView").innerHTML = `
-    <div class="notice">学生使用：双击打开本文件夹中的 index.html，即可看视频、查指南、填数据。
-    所有填写内容会自动保存在本机浏览器中，请记得<b>导出</b>或<b>打印</b>表格存档。</div>
+    <div class="notice">学生使用：手机打开网页即可看视频、查指南、填数据。所有填写内容会自动保存在手机浏览器中，
+    完成哪个表，就点该表下方的「<b>导出本表 CSV</b>」，把下载的文件通过微信/QQ 发给老师。</div>
     <div class="cards">${cards.join("")}</div>
     <div class="steps"><b>建议学习与作业流程：</b>
       <ol>
         <li>先观看「建站」两个视频，对照操作指南完成已知点建站与后视检查；</li>
         <li>进入对应实验，先看教学视频，再按操作指南完成测量；</li>
         <li>把仪器读数填写到「数据记录表」，悬高/放样的部分数值会自动计算；</li>
-        <li>完成后导出 CSV（可用 WPS/Excel 打开）或直接打印存档。</li>
+        <li>完成哪个表，就点该表下方的「导出本表 CSV」，把下载的文件通过微信/QQ 发给老师（可用 WPS/Excel 打开）。</li>
       </ol>
     </div>`;
   const info = loadStudentInfo();
@@ -442,7 +442,8 @@ function renderHome() {
     <span>组别<input id="si-grp" maxlength="10" placeholder="如 第3组"></span>
     <span>学号<input id="si-sid" maxlength="20" placeholder="必填"></span>
     <span>姓名<input id="si-name" maxlength="20" placeholder="必填"></span>
-    <div class="hint">填写后自动保存在本机；提交作业后，老师端即可查看到你的数据。</div>`;
+    <div class="hint">填写后自动保存在本机，并会写入导出的表格；交给老师前请务必填好学号和姓名。</div>
+    `;
   const home = $("homeView");
   home.insertBefore(bar, home.firstChild);
   ["cls", "grp", "sid", "name"].forEach(k => {
@@ -474,9 +475,7 @@ function openExp(id) {
     <div class="exp-header">
       <button class="back" onclick="goHome()">← 返回首页</button>
       <h2>${esc(expName)}</h2>
-      <button class="btn no-print" id="submitBtn" onclick="submitToCloud()" ${isSetup ? "hidden" : ""} style="font-size:13px;margin-left:auto">提交作业给老师</button>
     </div>
-    <div id="submitStatus" class="no-print" style="font-size:13px;margin-bottom:8px"></div>
     <div class="tabs no-print">
       <button class="tab active" data-tab="video" onclick="switchTab('video')">🎬 教学视频</button>
       <button class="tab" data-tab="guide" onclick="switchTab('guide')">📖 操作指南</button>
@@ -568,7 +567,7 @@ function renderTable(t) {
     <button class="btn alt" onclick="delRow('${t.id}')">－ 删除最后一行</button>
     <button class="btn ghost" onclick="fillSample('${t.id}')">填入示例数据</button>
     <button class="btn ghost" onclick="clearTable('${t.id}')">清空本表</button>
-    <button class="btn" onclick="exportCSV('${t.id}')">⬇ 导出 CSV</button>
+    <button class="btn" onclick="exportCSV('${t.id}')">⬇ 导出本表 CSV</button>
     <button class="btn alt" onclick="window.print()">🖨 打印</button>
   </div>`);
   html.push(`<div class="record-table"><table id="tbl-${t.id}"><thead><tr><th style="width:44px">序号</th>`);
@@ -774,6 +773,11 @@ function exportCSV(id) {
   const t = TABLES.find(x => x.id === id);
   collectTable(id);
   const lines = [[t.title], []];
+  const info = loadStudentInfo();
+  if (info.sid || info.name || info.cls || info.grp) {
+    lines.push(["学号", info.sid || ""], ["姓名", info.name || ""], ["班级", info.cls || ""], ["组别", info.grp || ""]);
+    lines.push([]);
+  }
   t.header.forEach(f => lines.push([f.label, data[id].header[f.k] || ""]));
   if (t.station) lines.push([t.station.label, ...t.station.fields.map(f => data[id].station[f.k] || "")]);
   if (t.orient) lines.push([t.orient.label, ...t.orient.fields.map(f => data[id].orient[f.k] || "")]);
