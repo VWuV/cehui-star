@@ -7,9 +7,9 @@
  * 服务使用 LeanCloud 国际版（免费，邮箱注册，无需备案域名）。
  * ===================================================================== */
 window.CLOUD_CONFIG = {
-  enabled: false,                 // ← 填好下面 2 项密钥后，把 false 改成 true
+  enabled: false,                 // ← 填好下面 3 项后，把 false 改成 true
   appId: "",                      // ← LeanCloud 应用的 AppID
   appKey: "",                     // ← LeanCloud 应用的 AppKey
-  apiBase: "https://api.leancloud.app/1.1", // ← 国际版默认地址，一般不用改
+  apiBase: "",                    // ← LeanCloud 应用的「REST API 服务器地址」，形如 https://xxxxxxxx.api.lncldglobal.com
   teacherPassword: "123456"       // ← 老师端查看密码，建议改成一个只有你知道的
 };

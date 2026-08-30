@@ -13,7 +13,11 @@
 
   function base() {
     var cfg = window.CLOUD_CONFIG || {};
-    return cfg.apiBase || "https://api.leancloud.app/1.1";
+    var b = String(cfg.apiBase || "").trim();
+    if (!b) throw new Error("未配置云端地址：请在 cloud-config.js 的 apiBase 填写 REST API 服务器地址");
+    b = b.replace(/\/+$/, "");
+    if (b.indexOf("/1.1") === -1) b += "/1.1";
+    return b;
   }
 
   function headers() {
