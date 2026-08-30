@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>测绘之星 · 老师端数据查看</title>
+<script src="cloud-config.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: #eef2f7; color: #22303f; line-height: 1.6;
+  }
+  header {
+    background: linear-gradient(135deg, #0c5aa8, #1583d8);
+    color: #fff; padding: 18px 24px;
+  }
+  header h1 { font-size: 21px; }
+  header p { font-size: 13px; opacity: .9; margin-top: 3px; }
+  main { max-width: 1180px; margin: 0 auto; padding: 18px 20px 60px; }
+  .card {
+    background: #fff; border: 1px solid #e3e9f1; border-radius: 14px;
+    padding: 18px 20px; margin-top: 14px;
+  }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .btn {
+    border: none; border-radius: 8px; padding: 9px 18px; cursor: pointer;
+    font-size: 14px; color: #fff; background: #0c5aa8;
+  }
+  .btn:hover { opacity: .9; }
+  .btn.alt { background: #fff; color: #0c5aa8; border: 1px solid #0c5aa8; }
+  .btn.danger { background: #c0392b; }
+  .btn.small { padding: 5px 12px; font-size: 13px; }
+  input[type=text], input[type=password] {
+    border: 1px solid #c9d6e4; border-radius: 6px; padding: 8px 10px;
+    font-size: 14px; font-family: inherit;
+  }
+  #summary { font-size: 13px; color: #5a6b7d; margin-left: auto; }
+  table.list { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+  table.list th, table.list td {
+    border: 1px solid #b9c6d6; padding: 6px 8px; text-align: center;
+  }
+  table.list th { background: #e8f0f9; white-space: nowrap; }
+  table.list td.left { text-align: left; }
+  .detail { background: #f8fafd; border: 1px solid #dbe5f0; border-radius: 10px; padding: 14px; margin: 10px 0; }
+  .detail h4 { color: #0c5aa8; margin: 8px 0; }
+  .detail table { border-collapse: collapse; font-size: 13px; width: 100%; margin: 6px 0 12px; }
+  .detail th, .detail td { border: 1px solid #b9c6d6; padding: 5px 8px; text-align: center; }
+  .detail th { background: #eef4fb; }
+  .kv { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 13px; margin: 4px 0; }
+  .msg { margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-size: 13px; }
+  .msg.warn { background: #fff7e6; color: #8c4d00; border: 1px solid #ffd591; }
+  .msg.ok { background: #f0f9f2; color: #0c6a3d; border: 1px solid #bfe3c9; }
+  .empty { text-align: center; color: #7a8ba0; padding: 40px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>测绘之星 · 老师端数据查看</h1>
+  <p>查看学生提交的点测量、点放样、悬高测量数据，支持一键导出。</p>
+</header>
+<main>
+  <div class="card" id="login">
+    <h3>请输入老师端查看密码</h3>
+    <p style="font-size:13px;color:#7a8ba0;margin:8px 0 12px">密码在 cloud-config.js 的 teacherPassword 中设置。</p>
+    <input type="password" id="pw" placeholder="查看密码">
+    <button class="btn" onclick="tryLogin()" style="margin-left:10px">进入</button>
+    <p id="pwMsg"></p>
+  </div>
+
+  <div id="panel" style="display:none">
+    <div class="card">
+      <div class="toolbar">
+        <input type="text" id="filter" placeholder="按学号 / 姓名搜索" oninput="renderList()" style="width:220px">
+        <button class="btn" onclick="loadAll()">刷新数据</button>
+        <button class="btn alt" onclick="exportAll()">导出全部 CSV</button>
+        <span id="summary"></span>
+      </div>
+      <div id="msg"></div>
+      <div id="records"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+"use strict";
+
+const CFG = window.CLOUD_CONFIG || {};
+const TABLE_COLS = {
+  measure: {
+    title: "全站仪点测量记录表",
+    header: [{k:"date",label:"日期"},{k:"cls",label:"班级"},{k:"grp",label:"组别"},{k:"observer",label:"观测者"},{k:"sid",label:"学号"}],
+    station: { label:"测站点", fields:[{k:"sp",label:"点名"},{k:"sx",label:"X坐标 (m)"},{k:"sy",label:"Y坐标 (m)"},{k:"sz",label:"高程 (m)"},{k:"ih",label:"仪器高(m)"}] },
+    orient: { label:"定向点", fields:[{k:"op",label:"点名"},{k:"ox",label:"X坐标 (m)"},{k:"oy",label:"Y坐标 (m)"},{k:"oz",label:"高程 (m)"},{k:"rec",label:"记录者"}] },
+    cols: ["点号","镜高 v (m)","N(X)坐标 (m)","E(Y)坐标 (m)","Z(高程) (m)","备注"]
+  },
+  stakeout: {
+    title: "全站仪点放样记录表",
+    header: [{k:"date",label:"日期"},{k:"cls",label:"班级"},{k:"grp",label:"组别"},{k:"observer",label:"观测者"},{k:"sid",label:"学号"}],
+    station: { label:"测站点", fields:[{k:"sp",label:"点名"},{k:"sx",label:"X坐标 (m)"},{k:"sy",label:"Y坐标 (m)"},{k:"rec",label:"记录者"}] },
+    orient: { label:"后视点", fields:[{k:"op",label:"点名"},{k:"ox",label:"X坐标 (m)"},{k:"oy",label:"Y坐标 (m)"}] },
+    cols: ["点号","设计 N(X) (m)","设计 E(Y) (m)","实测 N(X) (m)","实测 E(Y) (m)","△X (m)","△Y (m)","备注"]
+  },
+  height: {
+    title: "全站仪悬高测量记录表",
+    header: [{k:"proj",label:"工程名称"},{k:"station",label:"测站名 / 测站编号"},{k:"inst",label:"仪器型号 / 编号"},{k:"weather",label:"天气 / 温度"},{k:"date",label:"测量日期"},{k:"staff",label:"观测者 / 记录者 / 复核者"}],
+    cols: ["测站","后视点","仪器高 i (m)","棱镜高v (m)","照准点","平距 D (m)","垂角（°）","水平角VA (°)","悬高值dVD (m)","备注"]
+  }
+};
+
+let records = [];
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g,
+    c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function setMsg(html, ok) {
+  const el = document.getElementById("msg");
+  if (el) el.innerHTML = `<div class="msg ${ok ? "ok" : "warn"}">${html}</div>`;
+}
+
+function authOk() {
+  return sessionStorage.getItem("cehui_teacher_ok") === "1";
+}
+
+function tryLogin() {
+  const v = document.getElementById("pw").value;
+  if (v === CFG.teacherPassword) {
+    sessionStorage.setItem("cehui_teacher_ok", "1");
+    showPanel();
+  } else {
+    document.getElementById("pwMsg").textContent = "密码不对，请重新输入。";
+  }
+}
+
+function showPanel() {
+  document.getElementById("login").style.display = "none";
+  document.getElementById("panel").style.display = "block";
+  loadAll();
+}
+
+function headers() {
+  return {
+    "X-Bmob-Application-Id": CFG.appId,
+    "X-Bmob-REST-API-Key": CFG.restKey,
+    "Content-Type": "application/json"
+  };
+}
+
+async function loadAll() {
+  setMsg("正在从云端读取数据…", true);
+  records = [];
+  if (!CFG.enabled || !CFG.appId || !CFG.restKey) {
+    setMsg("云端尚未配置：请先在 cloud-config.js 中填写 Bmob 密钥，并确认 enabled 为 true。", false);
+    renderList();
+    return;
+  }
+  try {
+    const base = (CFG.apiBase || "https://api.bmob.cn") + "/1";
+    let skip = 0;
+    const page = 200;
+    while (true) {
+      const r = await fetch(base + "/classes/StudentRecord?limit=" + page + "&skip=" + skip + "&order=-updatedAt", { headers: headers() });
+      if (!r.ok) throw new Error("读取失败(" + r.status + ")");
+      const j = await r.json();
+      const arr = j.results || [];
+      records = records.concat(arr);
+      if (arr.length < page) break;
+      skip += page;
+    }
+    setMsg("共读取到 " + records.length + " 条提交记录。", true);
+  } catch (e) {
+    setMsg("读取失败：" + esc(e.message || "网络异常") + "。请确认密钥正确、网络可用。", false);
+  }
+  renderList();
+}
+
+function filterText() {
+  return (document.getElementById("filter").value || "").trim().toLowerCase();
+}
+
+function renderList() {
+  const f = filterText();
+  const list = f ? records.filter(r =>
+    (r.studentId || "").toLowerCase().indexOf(f) >= 0 ||
+    (r.studentName || "").toLowerCase().indexOf(f) >= 0 ||
+    (r.className || "").toLowerCase().indexOf(f) >= 0
+  ) : records;
+
+  const counts = {};
+  records.forEach(r => { counts[r.tableId || "?"] = (counts[r.tableId || "?"] || 0) + 1; });
+  const people = new Set(records.map(r => r.studentId)).size;
+  document.getElementById("summary").textContent =
+    "学生人数：" + people + " ｜ 提交记录：" + records.length +
+    "（点测量 " + (counts.measure || 0) + "，点放样 " + (counts.stakeout || 0) + "，悬高 " + (counts.height || 0) + "）";
+
+  const box = document.getElementById("records");
+  if (!list.length) {
+    box.innerHTML = '<div class="empty">暂无提交记录（或没有匹配的记录）。</div>';
+    return;
+  }
+  const rows = list.map(r => {
+    const title = (TABLE_COLS[r.tableId] || {}).title || r.tableTitle || "其他";
+    let data = {};
+    try { data = JSON.parse(r.data || "{}"); } catch (e) {}
+    const rowCount = (data.rows || []).length;
+    return `<tr>
+      <td>${esc(r.updatedAt || r.createdAt || "")}</td>
+      <td>${esc(r.className)}</td>
+      <td>${esc(r.group)}</td>
+      <td>${esc(r.studentId)}</td>
+      <td>${esc(r.studentName)}</td>
+      <td>${esc(title)}</td>
+      <td>${rowCount}</td>
+      <td><button class="btn small" onclick="toggleDetail('${r.objectId}')">查看</button>
+          <button class="btn small danger" onclick="delRecord('${r.objectId}','${esc(r.studentName || "")}')">删除</button></td>
+    </tr>`;
+  }).join("");
+  box.innerHTML = `
+    <table class="list">
+      <thead><tr>
+        <th>提交时间</th><th>班级</th><th>组别</th><th>学号</th><th>姓名</th>
+        <th>表格</th><th>数据行数</th><th>操作</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  box.querySelectorAll(".detail").forEach(d => d.remove());
+}
+
+function findRecord(id) {
+  return records.find(r => r.objectId === id);
+}
+
+function toggleDetail(id) {
+  let div = document.getElementById("detail-" + id);
+  if (div) {
+    div.style.display = div.style.display === "none" ? "block" : "none";
+    return;
+  }
+  const r = findRecord(id);
+  if (!r) return;
+  let data = {};
+  try { data = JSON.parse(r.data || "{}"); } catch (e) {}
+  const t = TABLE_COLS[r.tableId] || { title: r.tableTitle || "", cols: [] };
+  const kv = [];
+  (t.header || []).forEach(f => kv.push(`<span><b>${esc(f.label)}：</b>${esc((data.header || {})[f.k])}</span>`));
+  if (t.station) (t.station.fields || []).forEach(f => kv.push(`<span><b>${esc(t.station.label)}·${esc(f.label)}：</b>${esc((data.station || {})[f.k])}</span>`));
+  if (t.orient) (t.orient.fields || []).forEach(f => kv.push(`<span><b>${esc(t.orient.label)}·${esc(f.label)}：</b>${esc((data.orient || {})[f.k])}</span>`));
+  const rowHtml = (data.rows || []).map((row, i) =>
+    `<tr><td>${i + 1}</td>${t.cols.map((c, ci) => `<td>${esc(row[ci])}</td>`).join("")}</tr>`).join("");
+  div = document.createElement("div");
+  div.id = "detail-" + id;
+  div.className = "detail";
+  div.innerHTML = `
+    <h4>${esc(t.title)}（${esc(r.studentName)} · ${esc(r.studentId)}）</h4>
+    <div class="kv">${kv.join("")}</div>
+    <table>
+      <thead><tr><th>序号</th>${t.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead>
+      <tbody>${rowHtml || '<tr><td colspan="' + (t.cols.length + 1) + '">无数据行</td></tr>'}</tbody>
+    </table>`;
+  document.getElementById("records").appendChild(div);
+}
+
+async function delRecord(id, name) {
+  if (!confirm("确定删除 " + name + " 的这条提交记录吗？删除后不可恢复。")) return;
+  try {
+    const base = (CFG.apiBase || "https://api.bmob.cn") + "/1";
+    const r = await fetch(base + "/classes/StudentRecord/" + id, { method: "DELETE", headers: headers() });
+    if (!r.ok) throw new Error("删除失败(" + r.status + ")");
+    records = records.filter(x => x.objectId !== id);
+    setMsg("已删除。", true);
+    renderList();
+  } catch (e) {
+    setMsg("删除失败：" + esc(e.message || "网络异常"), false);
+  }
+}
+
+function csvCell(v) {
+  v = String(v == null ? "" : v);
+  return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+}
+
+function exportAll() {
+  if (!records.length) { alert("当前没有可导出的数据。"); return; }
+  const lines = [["提交时间","班级","组别","学号","姓名","表格","数据行数","完整数据(JSON)"]];
+  records.forEach(r => {
+    let data = {};
+    try { data = JSON.parse(r.data || "{}"); } catch (e) {}
+    lines.push([
+      r.updatedAt || r.createdAt || "",
+      r.className || "", r.group || "", r.studentId || "", r.studentName || "",
+      (TABLE_COLS[r.tableId] || {}).title || r.tableTitle || "",
+      String((data.rows || []).length),
+      JSON.stringify(data)
+    ]);
+  });
+  const csv = "\uFEFF" + lines.map(l => l.map(csvCell).join(",")).join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "测绘之星_全班数据_" + new Date().toISOString().slice(0, 10) + ".csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+if (authOk()) showPanel();
+</script>
+</body>
+</html>
