@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <title>测绘之星 · 全站仪实习助手</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -14,10 +16,12 @@
     background: linear-gradient(135deg, #0c5aa8, #1583d8);
     color: #fff; padding: 22px 28px;
     box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    position: relative;
   }
   header.app-header h1 { font-size: 24px; letter-spacing: 1px; }
   header.app-header p { font-size: 13px; opacity: .9; margin-top: 4px; }
   #saveTip { float: right; font-size: 13px; opacity: .95; padding-top: 8px; }
+  #verTag { position: absolute; right: 28px; bottom: 14px; font-size: 12px; opacity: .85; }
   .notice {
     background: #fff7e6; border: 1px solid #ffd591; color: #8c4d00;
     padding: 10px 16px; font-size: 13px; margin: 14px 0;
@@ -152,6 +156,7 @@
   <h1>测绘之星 · 全站仪实习助手</h1>
   <p>看视频学操作 · 查指南做测量 · 填表格存数据</p>
   <span id="saveTip"></span>
+  <div id="verTag"></div>
 </header>
 
 <main id="main">
@@ -849,6 +854,13 @@ async function submitToCloud() {
     if (btn) btn.disabled = false;
   }
 }
+
+/* ============ 版本标识 ============ */
+const APP_VERSION = "v1.4（2026-08-31）";
+(function () {
+  const el = $("verTag");
+  if (el) el.textContent = "版本 " + APP_VERSION;
+})();
 
 renderHome();
 </script>
