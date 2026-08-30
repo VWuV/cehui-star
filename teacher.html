@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>测绘之星 · 老师端数据查看</title>
 <script src="cloud-config.js"></script>
+<script src="vendor/spark-md5.min.js"></script>
+<script src="cloud.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -140,35 +142,16 @@ function showPanel() {
   loadAll();
 }
 
-function headers() {
-  return {
-    "X-Bmob-Application-Id": CFG.appId,
-    "X-Bmob-REST-API-Key": CFG.restKey,
-    "Content-Type": "application/json"
-  };
-}
-
 async function loadAll() {
   setMsg("正在从云端读取数据…", true);
   records = [];
-  if (!CFG.enabled || !CFG.appId || !CFG.restKey) {
-    setMsg("云端尚未配置：请先在 cloud-config.js 中填写 Bmob 密钥，并确认 enabled 为 true。", false);
+  if (!CFG.enabled || !CFG.appId || !CFG.appKey) {
+    setMsg("云端尚未配置：请先在 cloud-config.js 中填写云端密钥，并确认 enabled 为 true。", false);
     renderList();
     return;
   }
   try {
-    const base = (CFG.apiBase || "https://api.bmob.cn") + "/1";
-    let skip = 0;
-    const page = 200;
-    while (true) {
-      const r = await fetch(base + "/classes/StudentRecord?limit=" + page + "&skip=" + skip + "&order=-updatedAt", { headers: headers() });
-      if (!r.ok) throw new Error("读取失败(" + r.status + ")");
-      const j = await r.json();
-      const arr = j.results || [];
-      records = records.concat(arr);
-      if (arr.length < page) break;
-      skip += page;
-    }
+    records = await CLOUD.listAll();
     setMsg("共读取到 " + records.length + " 条提交记录。", true);
   } catch (e) {
     setMsg("读取失败：" + esc(e.message || "网络异常") + "。请确认密钥正确、网络可用。", false);
@@ -265,9 +248,7 @@ function toggleDetail(id) {
 async function delRecord(id, name) {
   if (!confirm("确定删除 " + name + " 的这条提交记录吗？删除后不可恢复。")) return;
   try {
-    const base = (CFG.apiBase || "https://api.bmob.cn") + "/1";
-    const r = await fetch(base + "/classes/StudentRecord/" + id, { method: "DELETE", headers: headers() });
-    if (!r.ok) throw new Error("删除失败(" + r.status + ")");
+    await CLOUD.del(id);
     records = records.filter(x => x.objectId !== id);
     setMsg("已删除。", true);
     renderList();

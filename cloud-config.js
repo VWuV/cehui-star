@@ -1,13 +1,15 @@
 /* =====================================================================
  * 云端配置（老师必读）
  * 用记事本打开本文件，填写下面 5 项后保存。
- * 填写好后，把本文件和网页一起上传发布，学生端即会出现
+ * 填写好后，把本文件和其他网页文件一起上传发布，学生端即会出现
  * 「提交作业给老师」按钮，老师端 teacher.html 可查看和导出全部数据。
+ *
+ * 服务使用 LeanCloud 国际版（免费，邮箱注册，无需备案域名）。
  * ===================================================================== */
 window.CLOUD_CONFIG = {
-  enabled: false,                 // ← 填好下面 3 项密钥后，把 false 改成 true
-  appId: "",                      // ← Bmob 应用的 Application ID（AppID）
-  restKey: "",                    // ← Bmob 应用的 REST API Key
-  apiBase: "https://api.bmob.cn", // ← 一般不用改
+  enabled: false,                 // ← 填好下面 2 项密钥后，把 false 改成 true
+  appId: "",                      // ← LeanCloud 应用的 AppID
+  appKey: "",                     // ← LeanCloud 应用的 AppKey
+  apiBase: "https://api.leancloud.app/1.1", // ← 国际版默认地址，一般不用改
   teacherPassword: "123456"       // ← 老师端查看密码，建议改成一个只有你知道的
 };
