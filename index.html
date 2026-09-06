@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<title>测绘之星 · 全站仪实习助手</title>
+<title>测绘之星 · 测量实习助手（全站仪 + GPS/RTK）</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -137,6 +137,10 @@
   .cloud-note { margin-top: 10px; padding: 10px 14px; border-radius: 8px; font-size: 13px; }
   .cloud-note.ok { background: #f0f9f2; color: #0c6a3d; border: 1px solid #bfe3c9; }
   .cloud-note.warn { background: #fff7e6; color: #8c4d00; border: 1px solid #ffd591; }
+  .section-title {
+    font-size: 18px; color: #0c5aa8; font-weight: 700;
+    border-left: 4px solid #1583d8; padding-left: 10px; margin: 22px 0 0;
+  }
   footer { text-align: center; color: #7a8ba0; font-size: 13px; margin-top: 40px; }
   @media print {
     body { background: #fff; }
@@ -153,8 +157,8 @@
 </head>
 <body>
 <header class="app-header">
-  <h1>测绘之星 · 全站仪实习助手</h1>
-  <p>看视频学操作 · 查指南做测量 · 填表格存数据</p>
+  <h1>测绘之星 · 测量实习助手</h1>
+  <p>全站仪 + GPS/RTK · 看视频学操作 · 查指南做测量</p>
   <span id="saveTip"></span>
   <div id="verTag"></div>
 </header>
@@ -169,6 +173,7 @@
 <script src="cloud-config.js"></script>
 <script src="vendor/spark-md5.min.js"></script>
 <script src="cloud.js"></script>
+<script src="rtk-guide.js"></script>
 <script>
 "use strict";
 
@@ -411,6 +416,56 @@ const EXPERIMENTS = [
   { id:"height", name:"悬高测量", desc:"测定无法放置棱镜的高处目标", icon:"📐", exp: TABLES[2] }
 ];
 
+/* ============ GPS / RTK（华测 LandStar，无记录表） ============ */
+const GPS_FOOT = "本页只显示该功能对应的操作步骤；完整指南见「资料」文件夹中的《华测RTK常用功能操作指南.docx》。";
+const GPS_ITEMS = [
+  { id:"rtk-boot", name:"开机连接设置", desc:"连接仪器 · 工作模式 · 新建工程 · 基准站架设", icon:"📡", tags:"5 个视频 · 操作指南", guideSecs:["rtk-flow"],
+    videos:[
+      {t:"总览：RTK 快速入门操作", src:"videos/gps/华测RTK快速入门操作视频.mp4"},
+      {t:"① 仪器连接（NFC/蓝牙）", src:"videos/gps/华测RTK入门系列教学1，仪器连接.mp4"},
+      {t:"② 工作模式设置", src:"videos/gps/华测RTK入门第2步，工作模式设置.mp4"},
+      {t:"③ 创建项目", src:"videos/gps/华测RTK入门第3步，创建项目.mp4"},
+      {t:"基准站架设（外挂电台实操）", src:"videos/gps/RTK外挂电台基准站架设实操.mp4"}
+    ]},
+  { id:"rtk-corr", name:"点校正", desc:"求转换参数（输入/采集控制点、参数计算）", icon:"📍", tags:"3 个视频 · 操作指南", guideSecs:["rtk-corr"],
+    videos:[
+      {t:"① 输入控制点", src:"videos/gps/华测RTK入门第4步，输入控制点.mp4"},
+      {t:"② 采集控制点", src:"videos/gps/华测RTK入门第5步，采集控制点.mp4"},
+      {t:"③ 参数计算", src:"videos/gps/华测RTK入门第6步，参数计算.mp4"}
+    ]},
+  { id:"rtk-measure", name:"点测量", desc:"采集点位坐标（成果由手簿导出）", icon:"🎯", tags:"2 个视频 · 操作指南", guideSecs:["rtk-measure"],
+    videos:[
+      {t:"点测量", src:"videos/gps/华测RTK如何进行点测量.mp4"},
+      {t:"坐标数据文件导出", src:"videos/gps/华测RTK如何进行坐标数据文件导出.mp4"}
+    ]},
+  { id:"rtk-stakeout", name:"点放样", desc:"把设计坐标放样到实地（含线放样、坐标导入）", icon:"📏", tags:"3 个视频 · 操作指南", guideSecs:["rtk-stakeout"],
+    videos:[
+      {t:"点放样", src:"videos/gps/华测RTK如何进行点放样.mp4"},
+      {t:"线放样", src:"videos/gps/华测RTK如何进行线放样.mp4"},
+      {t:"导入坐标数据文件", src:"videos/gps/华测RTK如何导入坐标数据文件.mp4"}
+    ]},
+  { id:"rtk-draw", name:"测量绘图", desc:"图形作业：现场测量成图", icon:"✏️", tags:"1 个视频 · 操作指南", guideSecs:["rtk-draw"],
+    videos:[
+      {t:"测量绘图", src:"videos/gps/华测RTK如何进行测量绘图.mp4"}
+    ]},
+  { id:"rtk-cad", name:"CAD 放样", desc:"打开 DWG/DXF 图纸直接选点放样", icon:"🗺️", tags:"2 个视频 · 操作指南", guideSecs:["rtk-cad"],
+    videos:[
+      {t:"CAD 放样", src:"videos/gps/华测RTK如何进行CAD放样.mp4"},
+      {t:"CAD 画图", src:"videos/gps/华测RTK如何进行CAD画图.mp4"}
+    ]},
+  { id:"rtk-earth", name:"土方计算", desc:"手簿现场实时计算土方量", icon:"🧮", tags:"操作指南（暂无视频）", guideSecs:["rtk-earth"], videos:[] },
+  { id:"rtk-road", name:"道路放样", desc:"中桩/边桩/横断面/边坡放样", icon:"🛣️", tags:"2 个视频 · 操作指南", guideSecs:["rtk-road"],
+    videos:[
+      {t:"道路放样操作界面", src:"videos/gps/一个视频了解华测RTK道路放样操作界面.mp4"},
+      {t:"边坡断面库", src:"videos/gps/华测RTK如何编辑边坡断面库.mp4"}
+    ]},
+  { id:"rtk-vision", name:"视觉放样", desc:"实景/AR 放样（含视频测量）", icon:"📷", tags:"2 个视频 · 操作指南", guideSecs:["rtk-vision"],
+    videos:[
+      {t:"视觉放样", src:"videos/gps/华测RTK如何进行视觉放样.mp4"},
+      {t:"视频测量", src:"videos/gps/华测RTK如何进行视频测量.mp4"}
+    ]}
+];
+
 /* ============ 页面渲染 ============ */
 function renderHome() {
   const cards = [];
@@ -418,19 +473,27 @@ function renderHome() {
   EXPERIMENTS.forEach(e => {
     cards.push(cardHTML(e.icon, e.name, e.desc, "视频 · 指南 · 记录表", e.id));
   });
-  cards.push(`<div class="card disabled"><div class="icon">🛰️</div>
-    <h3>GPS 测量</h3><p>GPS 材料待添加（预留位置）</p>
-    <div class="tags">后续版本加入</div></div>`);
+  const gpsCards = GPS_ITEMS.map(g => cardHTML(g.icon, g.name, g.desc, g.tags, g.id));
   $("homeView").innerHTML = `
     <div class="notice">学生使用：手机打开网页即可看视频、查指南、填数据。所有填写内容会自动保存在手机浏览器中，
     完成哪个表，就点该表下方的「<b>导出本表 CSV</b>」，把下载的文件通过微信/QQ 发给老师。</div>
+    <div class="section-title">全站仪测量</div>
     <div class="cards">${cards.join("")}</div>
+    <div class="section-title">GPS / RTK 测量（华测 LandStar）</div>
+    <div class="cards">${gpsCards.join("")}</div>
     <div class="steps"><b>建议学习与作业流程：</b>
       <ol>
         <li>先观看「建站」两个视频，对照操作指南完成已知点建站与后视检查；</li>
         <li>进入对应实验，先看教学视频，再按操作指南完成测量；</li>
         <li>把仪器读数填写到「数据记录表」，悬高/放样的部分数值会自动计算；</li>
         <li>完成哪个表，就点该表下方的「导出本表 CSV」，把下载的文件通过微信/QQ 发给老师（可用 WPS/Excel 打开）。</li>
+      </ol>
+    </div>
+    <div class="steps"><b>GPS / RTK 学习与作业流程：</b>
+      <ol>
+        <li>按顺序学习：开机连接设置 → 点校正 → 点测量 / 点放样…，每个功能先看视频，再对照对应的操作指南；</li>
+        <li>基准站架设见「开机连接设置」卡片；CAD放样、道路放样、视觉放样等按需观看；</li>
+        <li>RTK 坐标成果由手簿直接导出，本应用不设记录表，无需在网页里填数据。</li>
       </ol>
     </div>`;
   const info = loadStudentInfo();
@@ -467,7 +530,13 @@ function cardHTML(icon, name, desc, tags, id) {
 function openExp(id) {
   let cfg = null, isSetup = false;
   let expName = "";
+  const g = GPS_ITEMS.find(x => x.id === id);
   if (id === "setup") { cfg = SETUP; isSetup = true; expName = SETUP.name; }
+  else if (g) {
+    cfg = Object.assign({}, g, { guideHtml: RTK_GUIDE_HTML, guideFoot: GPS_FOOT });
+    isSetup = true;
+    expName = g.name;
+  }
   else { const e = EXPERIMENTS.find(x => x.id === id); cfg = e.exp; expName = e.name; }
   $("homeView").style.display = "none";
   $("expView").style.display = "block";
@@ -509,10 +578,14 @@ function switchTab(name) {
 function renderVideo(cfg, isSetup) {
   let html = "";
   if (isSetup) {
-    cfg.videos.forEach(v => {
-      html += `<div class="video-block"><h4>${esc(v.t)}</h4>
-        <video controls preload="metadata" src="${esc(v.src)}"></video></div>`;
-    });
+    if (!cfg.videos || !cfg.videos.length) {
+      html = `<p style="padding:16px 0;color:#5a6b7d">该功能暂无对应教学视频，请切换到「操作指南」按步骤操作。</p>`;
+    } else {
+      cfg.videos.forEach(v => {
+        html += `<div class="video-block"><h4>${esc(v.t)}</h4>
+          <video controls preload="metadata" src="${esc(v.src)}"></video></div>`;
+      });
+    }
   } else {
     html = `<div class="video-block"><h4>${esc(cfg.videoTitle)}</h4>
       <video controls preload="metadata" src="${esc(cfg.video)}"></video></div>`;
@@ -521,10 +594,11 @@ function renderVideo(cfg, isSetup) {
 }
 
 function renderGuide(cfg, isSetup) {
-  // 只保留本实验对应的操作指南章节
+  // 只保留本实验/功能对应的操作指南章节
   const secs = isSetup ? cfg.guideSecs : [cfg.guideSec];
+  const src = cfg.guideHtml || GUIDE_HTML;
   const holder = document.createElement("div");
-  holder.innerHTML = GUIDE_HTML;
+  holder.innerHTML = src;
   const root = holder.querySelector(".guide");
   const keep = new Set(secs);
   let remove = false;
@@ -532,8 +606,10 @@ function renderGuide(cfg, isSetup) {
     if (el.tagName === "H3") remove = !keep.has(el.id);
     if (remove) el.remove();
   });
-  $("tab-guide").innerHTML = holder.innerHTML +
-    `<p class="guide-foot">本页只显示本实验对应的操作步骤；完整指南见「资料」文件夹中的《南方测绘 NTS 系列全站仪操作指南.docx》。</p>`;
+  const foot = cfg.guideFoot
+    ? `<p class="guide-foot">${cfg.guideFoot}</p>`
+    : `<p class="guide-foot">本页只显示本实验对应的操作步骤；完整指南见「资料」文件夹中的《南方测绘 NTS 系列全站仪操作指南.docx》。</p>`;
+  $("tab-guide").innerHTML = holder.innerHTML + foot;
 }
 
 /* ============ 数据记录表 ============ */
@@ -860,7 +936,7 @@ async function submitToCloud() {
 }
 
 /* ============ 版本标识 ============ */
-const APP_VERSION = "v1.5（2026-08-31）";
+const APP_VERSION = "v2.0（2026-09-06）";
 (function () {
   const el = $("verTag");
   if (el) el.textContent = "版本 " + APP_VERSION;
