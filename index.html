@@ -417,50 +417,40 @@ const EXPERIMENTS = [
 ];
 
 /* ============ GPS / RTK（华测 LandStar，无记录表） ============ */
-const GPS_FOOT = "本页只显示该功能对应的操作步骤；完整指南见「资料」文件夹中的《华测RTK常用功能操作指南.docx》。";
+const GPS_FOOT = "本页只显示该模块对应的操作步骤；完整指南见「资料」文件夹中的《华测RTK常用功能操作指南.docx》。";
 const GPS_ITEMS = [
-  { id:"rtk-boot", name:"开机连接设置", desc:"连接仪器 · 工作模式 · 新建工程 · 基准站架设", icon:"📡", tags:"5 个视频 · 操作指南", guideSecs:["rtk-flow"],
+  { id:"gps-basic", name:"入门准备", desc:"连接仪器 · 新建工程 · 点校正 · 基准站架设", icon:"📡", tags:"8 个视频 · 操作指南", guideSecs:["rtk-flow","rtk-corr"],
     videos:[
       {t:"总览：RTK 快速入门操作", src:"videos/gps/华测RTK快速入门操作视频.mp4"},
-      {t:"① 仪器连接（NFC/蓝牙）", src:"videos/gps/华测RTK入门系列教学1，仪器连接.mp4"},
-      {t:"② 工作模式设置", src:"videos/gps/华测RTK入门第2步，工作模式设置.mp4"},
-      {t:"③ 创建项目", src:"videos/gps/华测RTK入门第3步，创建项目.mp4"},
-      {t:"基准站架设（外挂电台实操）", src:"videos/gps/RTK外挂电台基准站架设实操.mp4"}
+      {t:"仪器连接（NFC/蓝牙）", src:"videos/gps/华测RTK入门系列教学1，仪器连接.mp4"},
+      {t:"工作模式设置", src:"videos/gps/华测RTK入门第2步，工作模式设置.mp4"},
+      {t:"创建项目", src:"videos/gps/华测RTK入门第3步，创建项目.mp4"},
+      {t:"基准站架设（外挂电台实操）", src:"videos/gps/RTK外挂电台基准站架设实操.mp4"},
+      {t:"输入控制点", src:"videos/gps/华测RTK入门第4步，输入控制点.mp4"},
+      {t:"采集控制点", src:"videos/gps/华测RTK入门第5步，采集控制点.mp4"},
+      {t:"参数计算", src:"videos/gps/华测RTK入门第6步，参数计算.mp4"}
     ]},
-  { id:"rtk-corr", name:"点校正", desc:"求转换参数（输入/采集控制点、参数计算）", icon:"📍", tags:"3 个视频 · 操作指南", guideSecs:["rtk-corr"],
+  { id:"gps-measure", name:"点测量", desc:"采集点位坐标（成果由手簿导出）", icon:"🎯", tags:"1 个视频 · 操作指南", guideSecs:["rtk-measure"],
     videos:[
-      {t:"① 输入控制点", src:"videos/gps/华测RTK入门第4步，输入控制点.mp4"},
-      {t:"② 采集控制点", src:"videos/gps/华测RTK入门第5步，采集控制点.mp4"},
-      {t:"③ 参数计算", src:"videos/gps/华测RTK入门第6步，参数计算.mp4"}
+      {t:"点测量", src:"videos/gps/华测RTK如何进行点测量.mp4"}
     ]},
-  { id:"rtk-measure", name:"点测量", desc:"采集点位坐标（成果由手簿导出）", icon:"🎯", tags:"2 个视频 · 操作指南", guideSecs:["rtk-measure"],
-    videos:[
-      {t:"点测量", src:"videos/gps/华测RTK如何进行点测量.mp4"},
-      {t:"坐标数据文件导出", src:"videos/gps/华测RTK如何进行坐标数据文件导出.mp4"}
-    ]},
-  { id:"rtk-stakeout", name:"点放样", desc:"把设计坐标放样到实地（含线放样、坐标导入）", icon:"📏", tags:"3 个视频 · 操作指南", guideSecs:["rtk-stakeout"],
+  { id:"gps-stakeout", name:"点放样", desc:"把设计坐标放样到实地（含线放样）", icon:"📏", tags:"2 个视频 · 操作指南", guideSecs:["rtk-stakeout"],
     videos:[
       {t:"点放样", src:"videos/gps/华测RTK如何进行点放样.mp4"},
-      {t:"线放样", src:"videos/gps/华测RTK如何进行线放样.mp4"},
-      {t:"导入坐标数据文件", src:"videos/gps/华测RTK如何导入坐标数据文件.mp4"}
+      {t:"线放样", src:"videos/gps/华测RTK如何进行线放样.mp4"}
     ]},
-  { id:"rtk-draw", name:"测量绘图", desc:"图形作业：现场测量成图", icon:"✏️", tags:"1 个视频 · 操作指南", guideSecs:["rtk-draw"],
+  { id:"gps-data", name:"数据导入导出", desc:"坐标文件批量导入与成果导出", icon:"📂", tags:"2 个视频 · 操作指南", guideSecs:["rtk-data"],
     videos:[
-      {t:"测量绘图", src:"videos/gps/华测RTK如何进行测量绘图.mp4"}
+      {t:"导入坐标数据文件", src:"videos/gps/华测RTK如何导入坐标数据文件.mp4"},
+      {t:"坐标数据文件导出", src:"videos/gps/华测RTK如何进行坐标数据文件导出.mp4"}
     ]},
-  { id:"rtk-cad", name:"CAD 放样", desc:"打开 DWG/DXF 图纸直接选点放样", icon:"🗺️", tags:"2 个视频 · 操作指南", guideSecs:["rtk-cad"],
+  { id:"gps-adv", name:"进阶功能", desc:"CAD放样 · 土方计算 · 道路放样 · 视觉放样等", icon:"🧰", tags:"7 个视频 · 操作指南", guideSecs:["rtk-draw","rtk-cad","rtk-earth","rtk-road","rtk-vision"],
     videos:[
+      {t:"测量绘图", src:"videos/gps/华测RTK如何进行测量绘图.mp4"},
       {t:"CAD 放样", src:"videos/gps/华测RTK如何进行CAD放样.mp4"},
-      {t:"CAD 画图", src:"videos/gps/华测RTK如何进行CAD画图.mp4"}
-    ]},
-  { id:"rtk-earth", name:"土方计算", desc:"手簿现场实时计算土方量", icon:"🧮", tags:"操作指南（暂无视频）", guideSecs:["rtk-earth"], videos:[] },
-  { id:"rtk-road", name:"道路放样", desc:"中桩/边桩/横断面/边坡放样", icon:"🛣️", tags:"2 个视频 · 操作指南", guideSecs:["rtk-road"],
-    videos:[
+      {t:"CAD 画图", src:"videos/gps/华测RTK如何进行CAD画图.mp4"},
       {t:"道路放样操作界面", src:"videos/gps/一个视频了解华测RTK道路放样操作界面.mp4"},
-      {t:"边坡断面库", src:"videos/gps/华测RTK如何编辑边坡断面库.mp4"}
-    ]},
-  { id:"rtk-vision", name:"视觉放样", desc:"实景/AR 放样（含视频测量）", icon:"📷", tags:"2 个视频 · 操作指南", guideSecs:["rtk-vision"],
-    videos:[
+      {t:"边坡断面库", src:"videos/gps/华测RTK如何编辑边坡断面库.mp4"},
       {t:"视觉放样", src:"videos/gps/华测RTK如何进行视觉放样.mp4"},
       {t:"视频测量", src:"videos/gps/华测RTK如何进行视频测量.mp4"}
     ]}
@@ -491,8 +481,8 @@ function renderHome() {
     </div>
     <div class="steps"><b>GPS / RTK 学习与作业流程：</b>
       <ol>
-        <li>按顺序学习：开机连接设置 → 点校正 → 点测量 / 点放样…，每个功能先看视频，再对照对应的操作指南；</li>
-        <li>基准站架设见「开机连接设置」卡片；CAD放样、道路放样、视觉放样等按需观看；</li>
+        <li>按顺序学习：入门准备（含点校正、基准站架设）→ 点测量 → 点放样 → 数据导入导出 → 进阶功能，每个模块先看视频，再对照对应的操作指南；</li>
+        <li>进阶功能包括 CAD放样、土方计算、道路放样、视觉放样等，按需观看；</li>
         <li>RTK 坐标成果由手簿直接导出，本应用不设记录表，无需在网页里填数据。</li>
       </ol>
     </div>`;
@@ -936,7 +926,7 @@ async function submitToCloud() {
 }
 
 /* ============ 版本标识 ============ */
-const APP_VERSION = "v2.0（2026-09-06）";
+const APP_VERSION = "v2.1（2026-09-06）";
 (function () {
   const el = $("verTag");
   if (el) el.textContent = "版本 " + APP_VERSION;
